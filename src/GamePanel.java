@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +20,7 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
     private ArrayList<Bullet> bullets = new ArrayList<>();
     private ArrayList<Enemy> enemies = new ArrayList<>();
     private int score = 0;
+    private boolean isGameOver = false;
 
     public GamePanel() {
         setPreferredSize(new Dimension(400, 500));
@@ -33,6 +35,16 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        if (isGameOver) {
+            g.setColor(Color.RED);
+            g.setFont(new Font("Arial", Font.BOLD, 32));
+            g.drawString("GAME OVER", 100, 250);
+            g.setFont(new Font("Arial", Font.PLAIN, 18));
+            g.drawString("Score: " + score, 150, 290);
+            return;
+        }
+
         g.setColor(Color.WHITE);
         g.fillRect(playerX, playerY, 20, 20); // プレイヤー
 
@@ -52,6 +64,8 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        if (isGameOver) return;
+
         for (Bullet b : bullets) {
             b.move();
         }
@@ -59,17 +73,22 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         for (Enemy enemy : enemies) {
             enemy.move();
+            if (enemy.y + 20 > getHeight()) {
+                isGameOver = true;
+                timer.stop();
+                repaint();
+                return;
+            }
         }
         enemies.removeIf(enemy -> enemy.y > getHeight());
 
-        // 弾と敵の当たり判定
         Iterator<Bullet> bulletIter = bullets.iterator();
         while (bulletIter.hasNext()) {
             Bullet b = bulletIter.next();
             Iterator<Enemy> enemyIter = enemies.iterator();
             while (enemyIter.hasNext()) {
-                Enemy e1 = enemyIter.next();
-                if (b.x < e1.x + 20 && b.x + 5 > e1.x && b.y < e1.y + 20 && b.y + 10 > e1.y) {
+                Enemy enemy = enemyIter.next();
+                if (b.x < enemy.x + 20 && b.x + 5 > enemy.x && b.y < enemy.y + 20 && b.y + 10 > enemy.y) {
                     bulletIter.remove();
                     enemyIter.remove();
                     score += 10;
@@ -78,7 +97,6 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // ランダムで敵出現
         if (Math.random() < 0.02) {
             enemies.add(new Enemy(new Random().nextInt(380), 0));
         }
@@ -88,6 +106,8 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (isGameOver) return;
+
         int key = e.getKeyCode();
         if (key == KeyEvent.VK_LEFT && playerX > 0) playerX -= 10;
         if (key == KeyEvent.VK_RIGHT && playerX < getWidth() - 20) playerX += 10;
