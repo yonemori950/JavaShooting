@@ -19,7 +19,7 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
     private ArrayList<Bullet> bullets = new ArrayList<>();
     private ArrayList<Enemy> enemies = new ArrayList<>();
     private int score = 0;
-
+    
     public GamePanel() {
         setPreferredSize(new Dimension(400, 500));
         setBackground(Color.BLACK);
