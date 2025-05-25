@@ -21,15 +21,18 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
     private ArrayList<Enemy> enemies = new ArrayList<>();
     private int score = 0;
     private boolean isGameOver = false;
+    private GameFrame parent;
 
-    public GamePanel() {
+    public GamePanel(GameFrame parent) {
+        this.parent = parent;
         setPreferredSize(new Dimension(400, 500));
         setBackground(Color.BLACK);
         setFocusable(true);
         addKeyListener(this);
-
         timer = new Timer(15, this);
         timer.start();
+
+        requestFocusInWindow(); // ★これが重要！
     }
 
     @Override
@@ -42,11 +45,13 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
             g.drawString("GAME OVER", 100, 250);
             g.setFont(new Font("Arial", Font.PLAIN, 18));
             g.drawString("Score: " + score, 150, 290);
+            g.setFont(new Font("Arial", Font.PLAIN, 14));
+            g.drawString("Rキーで再スタート", 130, 320);
             return;
         }
 
         g.setColor(Color.WHITE);
-        g.fillRect(playerX, playerY, 20, 20); // プレイヤー
+        g.fillRect(playerX, playerY, 20, 20);
 
         g.setColor(Color.YELLOW);
         for (Bullet b : bullets) {
@@ -88,7 +93,8 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
             Iterator<Enemy> enemyIter = enemies.iterator();
             while (enemyIter.hasNext()) {
                 Enemy enemy = enemyIter.next();
-                if (b.x < enemy.x + 20 && b.x + 5 > enemy.x && b.y < enemy.y + 20 && b.y + 10 > enemy.y) {
+                if (b.x < enemy.x + 20 && b.x + 5 > enemy.x &&
+                    b.y < enemy.y + 20 && b.y + 10 > enemy.y) {
                     bulletIter.remove();
                     enemyIter.remove();
                     score += 10;
@@ -106,7 +112,12 @@ class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (isGameOver) return;
+        if (isGameOver) {
+            if (e.getKeyCode() == KeyEvent.VK_R) {
+                parent.restartGame();  // 再スタート処理
+            }
+            return;
+        }
 
         int key = e.getKeyCode();
         if (key == KeyEvent.VK_LEFT && playerX > 0) playerX -= 10;
